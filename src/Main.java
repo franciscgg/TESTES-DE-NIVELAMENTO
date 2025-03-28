@@ -16,6 +16,22 @@ public class Main {
         Elements links = buscarLinksDoSite(url);
         criarFolder(folder);
         baixarPDFs(links, folder);
+
+        // CAMINHO DO ARQUIVO PDF
+
+        String caminhoPDF = "src/downloads/Anexo_I_Rol_2021RN_465.2021_RN627L.2024.pdf";
+
+        // Caminho do arquivo CSV
+        String caminhoCSV = "src/downloads/resultado.csv";
+
+        // Caminho do arquivo ZIP
+        String caminhoZip = "src/downloads/Teste_Francisco.zip";
+
+        // Extrair dados do PDF para CSV
+        PDFExtrair.extrairPDFParaCSV(caminhoPDF, caminhoCSV);
+
+        // Compactar CSV em ZIP
+        PDFExtrair.compactarEmZip(caminhoCSV, caminhoZip);
     }
 
     private static Elements buscarLinksDoSite(String url) {
@@ -24,7 +40,7 @@ public class Main {
             // CONEXÃO COM O SITE
             Document document = Jsoup.connect(url).get();
             links = document.select("a[href$=.pdf]"); // BUSCANDO TODOS OS LINKS QUE TERMINAM COM .pdf PARA BAIXAR
-            System.out.println("Conexão bem-sucedida! PDFs encontrados: "); // CONEXÃO BEM-SUCEDIDA E QUANTIDADE DE PDFs ENCONTRADOS
+            System.out.println("Conexão bem-sucedida!"); // CONEXÃO BEM-SUCEDIDA E QUANTIDADE DE PDFs ENCONTRADOS
         } catch (IOException e) {
             System.out.println("Erro ao conectar ao site: " + e.getMessage()); // CASO O SITE ESTEJA OFF, RETORNA UMA MENSAGEM DE ERRO
         }
@@ -69,7 +85,11 @@ public class Main {
                 if (file.toString().endsWith(".pdf")) { // VERIFICA SE O ARQUIVO É PDF
                     try (FileInputStream fis = new FileInputStream(file.toFile())) {
                         zipOut.putNextEntry(new ZipEntry(file.getFileName().toString()));
-                        fis.transferTo(zipOut);
+                        byte[] buffer = new byte[1024]; // Buffer para transferir os dados
+                        int len;
+                        while ((len = fis.read(buffer)) > 0) {
+                            zipOut.write(buffer, 0, len);
+                        }
                         zipOut.closeEntry();
                     } catch (IOException e) {
                         System.err.println("Erro ao adicionar ao ZIP: " + file.getFileName());
